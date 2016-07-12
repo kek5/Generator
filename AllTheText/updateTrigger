@@ -1,0 +1,8 @@
+CREATE OR REPLACE FUNCTION set_%1$s_updated()
+RETURNS trigger as $$
+BEGIN
+    NEW.%1$s_updated = cast(extract(epoch from now()) as integer);
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER %1$s_update_timestamp BEFORE UPDATE ON "%1$s" FOR EACH ROW EXECUTE PROCEDURE set_%1$s_updated();

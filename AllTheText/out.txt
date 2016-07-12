@@ -1,0 +1,66 @@
+CREATE TABLE "Category" (
+  "Category_id" SERIAL PRIMARY KEY,
+  "Category_title" varchar(50),
+  "Category_created" INTEGER NOT NULL DEFAULT cast(extract(epoch from now()) AS INTEGER),
+  "Category_updated" INTEGER NOT NULL DEFAULT cast(extract(epoch from now()) AS INTEGER)
+);
+
+CREATE OR REPLACE FUNCTION set_Category_updated()
+RETURNS trigger as $$
+BEGIN
+    NEW.Category_updated = cast(extract(epoch from now()) as integer);
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER Category_update_timestamp BEFORE UPDATE ON "Category" FOR EACH ROW EXECUTE PROCEDURE set_Category_updated();
+
+CREATE TABLE "Article" (
+  "Article_id" SERIAL PRIMARY KEY,
+  "Article_text" text,
+  "Article_title" varchar(50),
+  "Article_created" INTEGER NOT NULL DEFAULT cast(extract(epoch from now()) AS INTEGER),
+  "Article_updated" INTEGER NOT NULL DEFAULT cast(extract(epoch from now()) AS INTEGER)
+);
+
+CREATE OR REPLACE FUNCTION set_Article_updated()
+RETURNS trigger as $$
+BEGIN
+    NEW.Article_updated = cast(extract(epoch from now()) as integer);
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER Article_update_timestamp BEFORE UPDATE ON "Article" FOR EACH ROW EXECUTE PROCEDURE set_Article_updated();
+
+CREATE TABLE "Tag" (
+  "Tag_id" SERIAL PRIMARY KEY,
+  "Tag_value" varchar(50),
+  "Tag_created" INTEGER NOT NULL DEFAULT cast(extract(epoch from now()) AS INTEGER),
+  "Tag_updated" INTEGER NOT NULL DEFAULT cast(extract(epoch from now()) AS INTEGER)
+);
+
+CREATE OR REPLACE FUNCTION set_Tag_updated()
+RETURNS trigger as $$
+BEGIN
+    NEW.Tag_updated = cast(extract(epoch from now()) as integer);
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER Tag_update_timestamp BEFORE UPDATE ON "Tag" FOR EACH ROW EXECUTE PROCEDURE set_Tag_updated();
+
+
+
+ALTER TABLE "Article" ADD "Category_id" INTEGER NOT NULL,
+  ADD CONSTRAINT "fk_Article_Category_id" FOREIGN KEY ("Category_id") REFERENCES "Category" ("Category_id");
+
+CREATE TABLE "Article__Category" (
+  "Article_id" INTEGER NOT NULL,
+  "Category_id" INTEGER NOT NULL,
+  PRIMARY KEY ("Article_id", "Category_id")
+);
+
+ALTER TABLE "Article__Category"
+  ADD CONSTRAINT "fk_Article__Category_Article_id" FOREIGN KEY ("Article_id") REFERENCES "Article" ("Article_id");
+
+ALTER TABLE "Article__Category"
+  ADD CONSTRAINT "fk_Article__Category_Category_id" FOREIGN KEY ("Article_id") REFERENCES "Category" ("Category_id");
+
