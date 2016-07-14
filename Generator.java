@@ -135,8 +135,6 @@ public class Generator {
                 } else if(reverseRelationType.equalsIgnoreCase("=man") && relationType.equalsIgnoreCase("one")) { // Check
                     this.addOTMRelation(tableName, relationTableName); // alter Article table with fk from Category
                 } else { // if many and many
-                    System.out.println(relationType);
-                    System.out.println(reverseRelationType);
                     if(this.manyToMany.get(tableName) == null && this.manyToMany.get(relationTableName) == null) {
                         this.createMTMTable(tableName, relationTableName);
                         this.addMTMRelation(tableName, relationTableName);
