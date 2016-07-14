@@ -8,13 +8,13 @@ import java.io.*;
 import java.util.*;
 
 public class Generator {
-    private File in;
-    private File out;
+    private final File in;
+    private final File out;
     private Map data;
     private StringBuilder output = new StringBuilder("");
     private StringBuilder relations = new StringBuilder("");
     private Map<String, String> manyToMany = new HashMap();
-    private YamlReader reader;
+    private final YamlReader reader;
 
     private static String updateTrigger = "";
 
@@ -75,7 +75,7 @@ public class Generator {
 
     }
 
-    private void addFields(String tableName, String namesAndTypes) {
+    private void addFields(final String tableName, final String namesAndTypes) {
         String[] temp = namesAndTypes.split(",");
 
         this.output.append("  \"" + tableName + "_id\" SERIAL PRIMARY KEY,\n");
@@ -84,7 +84,7 @@ public class Generator {
         }
     }
 
-    private void addRelations(String tableName, String relationsData) {
+    private void addRelations(final String tableName, final String relationsData) {
         String[] temp = relationsData.split(",");
 
         for(String relation : temp) { // Category=one, User=many inside current tableName
@@ -131,10 +131,12 @@ public class Generator {
                 }                                                                                                // Category:
                                                                                                                  //  relations:
                 if(reverseRelationType.equalsIgnoreCase("=one") && relationType.equalsIgnoreCase("many")) {      //   Article:one
-                    this.addOTMRelation(relationTableName, tableName); // alter Article table with fk from Category
-                } else if(relationType.equalsIgnoreCase("=man") && relationType.equalsIgnoreCase("one")) { // Check
                     return;
-                } else {
+                } else if(reverseRelationType.equalsIgnoreCase("=man") && relationType.equalsIgnoreCase("one")) { // Check
+                    this.addOTMRelation(tableName, relationTableName); // alter Article table with fk from Category
+                } else { // if many and many
+                    System.out.println(relationType);
+                    System.out.println(reverseRelationType);
                     if(this.manyToMany.get(tableName) == null && this.manyToMany.get(relationTableName) == null) {
                         this.createMTMTable(tableName, relationTableName);
                         this.addMTMRelation(tableName, relationTableName);
@@ -153,7 +155,7 @@ public class Generator {
     //reverseTableName - many
 
     // One To Many
-    private void addOTMRelation(String tableName, String reverseTableName) { // one - many
+    private void addOTMRelation(final String tableName, final String reverseTableName) { // one - many
         this.relations.append("ALTER TABLE " + "\"" + tableName +"\" " + "ADD \"" + reverseTableName + "_id\" " + "INTEGER NOT NULL,\n");
         this.relations.append("  ADD CONSTRAINT \"fk_" + tableName + "_" + reverseTableName + "_id\" ");
         this.relations.append("FOREIGN KEY (\"" + reverseTableName + "_id\")" + " REFERENCES \"" + reverseTableName + "\" ");
@@ -162,7 +164,7 @@ public class Generator {
     }
 
     // Many To Many
-    private void addMTMRelation(String tableName1, String tableName2) {
+    private void addMTMRelation(final String tableName1, final String tableName2) {
         String manyToManyTableName = tableName1 + "__" + tableName2;
         this.relations.append("ALTER TABLE \"" + manyToManyTableName + "\"\n");
         this.relations.append("  ADD CONSTRAINT \"fk_" + manyToManyTableName + "_" + tableName1 + "_id\"" + " FOREIGN KEY (\"");
@@ -172,7 +174,7 @@ public class Generator {
         this.relations.append("  ADD CONSTRAINT \"fk_" + manyToManyTableName + "_" + tableName2 + "_id\"" + " FOREIGN KEY (\"");
         this.relations.append(tableName1 + "_id\") REFERENCES \"" + tableName2 + "\" (\"" + tableName2 + "_id\");\n\n");
     }
-    private void createMTMTable(String tableName1, String tableName2) {
+    private void createMTMTable(final String tableName1, final String tableName2) {
         this.relations.append("CREATE TABLE \"" + tableName1 + "__" + tableName2 + "\" (\n");
         this.relations.append("  \"" + tableName1 + "_id\" INTEGER NOT NULL,\n");
         this.relations.append("  \"" + tableName2 + "_id\" INTEGER NOT NULL,\n");
